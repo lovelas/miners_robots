@@ -52,7 +52,7 @@ local function vm_mine(pos1, dir, arg)
 	local pos2 = vector.add(pos1, dir)
 	local node = minetest.get_node(pos2)
 	if not vm_diggable(node.name) then
-		return simple_robots.vm_lookup(pos1, arg, 0)
+		return miners_robots.vm_lookup(pos1, arg, 0)
 	end
 	--For some insane reason,
 	--this has to try both the current tool and the hand to find which is better.
@@ -68,7 +68,7 @@ local function vm_mine(pos1, dir, arg)
 		ItemStack({name=":"}):get_tool_capabilities()
 	)
 	--Tool.
-	local toolcaps = simple_robots.vm_get_wielded(pos1):get_tool_capabilities()
+	local toolcaps = miners_robots.vm_get_wielded(pos1):get_tool_capabilities()
 	dp_pool[2] = minetest.get_dig_params(
 		groups,
 		toolcaps
@@ -85,19 +85,19 @@ local function vm_mine(pos1, dir, arg)
 	end
 	--Check if unable to dig!
 	if not dp_result then
-		return simple_robots.vm_lookup(pos1, arg, 0)
+		return miners_robots.vm_lookup(pos1, arg, 0)
 	end
 	local meta = minetest.get_meta(pos1)
-	local fp = simple_robots.vm_fakeplayer(meta:get_string("robot_owner"), pos1, {sneak=false}, meta:get_int("robot_slot"))
+	local fp = miners_robots.vm_fakeplayer(meta:get_string("robot_owner"), pos1, {sneak=false}, meta:get_int("robot_slot"))
 	if not fp then
-		return simple_robots.vm_lookup(pos1, arg, 0)
+		return miners_robots.vm_lookup(pos1, arg, 0)
 	end
 	minetest.registered_nodes[node.name].on_dig(pos2, node, fp)
 	fp:remove()
 	--The block not being air is considered "failure".
 	--HOWEVER,since the dig itself was a success,it takes time.
-	if not simple_robots.vm_is_air(minetest.get_node(pos2)) then
-		return simple_robots.vm_lookup(pos1, arg, dp_result.time+MINEPENALTYTIME)
+	if not miners_robots.vm_is_air(minetest.get_node(pos2)) then
+		return miners_robots.vm_lookup(pos1, arg, dp_result.time+MINEPENALTYTIME)
 	end
 
 	local sound = vm_get_node_dug_sound(node.name)
@@ -105,21 +105,21 @@ local function vm_mine(pos1, dir, arg)
 		minetest.sound_play(sound.name, {pos=pos2, gain=sound.gain})
 	end
 
-	return simple_robots.vm_advance(pos1, dp_result.time+MINEPENALTYTIME)
+	return miners_robots.vm_advance(pos1, dp_result.time+MINEPENALTYTIME)
 end
 
-simple_robots.commands["MINE IN FRONT"] = function(pos,arg)
+miners_robots.commands["MINE IN FRONT"] = function(pos,arg)
 	return vm_mine(pos,minetest.facedir_to_dir(minetest.get_node(pos).param2),arg)
 end
-simple_robots.commands["MINE UP"] = function(pos,arg)
+miners_robots.commands["MINE UP"] = function(pos,arg)
 	return vm_mine(pos,{x=0,y=1,z=0},arg)
 end
-simple_robots.commands["MINE DOWN"] = function(pos,arg)
+miners_robots.commands["MINE DOWN"] = function(pos,arg)
 	return vm_mine(pos,{x=0,y=-1,z=0},arg)
 end
 
 
 --PAGE DEFINITION
 
-simple_robots.commandpages.miner = {["MINE IN FRONT"]="1",["MINE UP"]="2",["MINE DOWN"]="3"}
+miners_robots.commandpages.miner = {["MINE IN FRONT"]="1",["MINE UP"]="2",["MINE DOWN"]="3"}
 

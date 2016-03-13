@@ -51,12 +51,12 @@ local function vm_place(pos1,dir,arg)
    
     local meta=minetest.get_meta(pos1)
     local pos2=vector.add(pos1,dir)
-    if not vm_buildable_to(minetest.get_node(pos2).name) then return simple_robots.vm_lookup(pos1,arg,0) end
+    if not vm_buildable_to(minetest.get_node(pos2).name) then return miners_robots.vm_lookup(pos1,arg,0) end
     local owner=meta:get_string("robot_owner")
     local stk=meta:get_inventory():get_stack("main",meta:get_int("robot_slot"))
-    if stk:is_empty() then return simple_robots.vm_lookup(pos1,arg,0) end
-    local fp=simple_robots.vm_fakeplayer(owner,pos1,{sneak=true},meta:get_int("robot_slot"))
-    if not fp then return simple_robots.vm_lookup(pos1,arg,0) end
+    if stk:is_empty() then return miners_robots.vm_lookup(pos1,arg,0) end
+    local fp=miners_robots.vm_fakeplayer(owner,pos1,{sneak=true},meta:get_int("robot_slot"))
+    if not fp then return miners_robots.vm_lookup(pos1,arg,0) end
     local stackdef=stk:get_definition()
     local pa_under=vector.add(pos2,dir)
     if not vm_pointable(minetest.get_node(pa_under).name) then pa_under=pos1 end
@@ -64,7 +64,7 @@ local function vm_place(pos1,dir,arg)
     local res,tf=stackdef.on_place(stk,fp,{type="node",under=pa_under,above=pos2})
     fp:remove()
     meta:get_inventory():set_stack("main",meta:get_int("robot_slot"),res)
-    if not tf then return simple_robots.vm_lookup(pos1,arg,PLACETIME) end
+    if not tf then return miners_robots.vm_lookup(pos1,arg,PLACETIME) end
     local name = stackdef.name
     if name then
         local sound = vm_get_node_place_sound(name)
@@ -72,18 +72,18 @@ local function vm_place(pos1,dir,arg)
             minetest.sound_play(sound.name, {pos=pos2, gain=sound.gain})
         end
     end
-   return simple_robots.vm_advance(pos1,PLACETIME) 
+   return miners_robots.vm_advance(pos1,PLACETIME) 
     
     
 end
 
-simple_robots.commands["BUILD IN FRONT"]=function (pos,arg)
+miners_robots.commands["BUILD IN FRONT"]=function (pos,arg)
     return vm_place(pos,minetest.facedir_to_dir(minetest.get_node(pos).param2),arg)
 end
-simple_robots.commands["BUILD UP"]=function (pos,arg)
+miners_robots.commands["BUILD UP"]=function (pos,arg)
     return vm_place(pos,{x=0,y=1,z=0},arg)
 end
-simple_robots.commands["BUILD DOWN"]=function (pos,arg)
+miners_robots.commands["BUILD DOWN"]=function (pos,arg)
      
     return vm_place(pos,{x=0,y=-1,z=0},arg)
     
@@ -92,5 +92,5 @@ simple_robots.commands["BUILD DOWN"]=function (pos,arg)
 end
 --PAGE DEFINITION
 
-simple_robots.commandpages["builder"]={["BUILD IN FRONT"]="1",["BUILD UP"]="2",["BUILD DOWN"]="3"}
+miners_robots.commandpages["builder"]={["BUILD IN FRONT"]="1",["BUILD UP"]="2",["BUILD DOWN"]="3"}
 

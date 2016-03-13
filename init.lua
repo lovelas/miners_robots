@@ -12,10 +12,10 @@
 --See the License for the specific language governing permissions and
 --limitations under the License.
 
---init.lua:simple_robots core.
---This file handles the core of simple_robots.
+--init.lua:miners_robots core.
+--This file handles the core of miners_robots.
 --It contains the basic programming interface,and functions to define robots.
---It also creates the simple_robots API.
+--It also creates the miners_robots API.
 
 --CONFIG
 --NOTE:Configurations(and commands) for specific pages are in different files,1 for each page.
@@ -52,29 +52,29 @@ if CPUTIME<0.05 then error("CPUTIME too low. Please do not disable this safety f
 --         Can't get uranium out of a centrifuge? Tough luck, apparently only inserting works.
 --  This problem might be usable to this mod's advantage :)
 
---API for simple_robots.
-simple_robots={}
+--API for miners_robots.
+miners_robots={}
 
 --Command pages. This table should be modified by mods wishing to add more pages.
 --Command pages can have up to 7 commands in them.
-simple_robots.commandpages={}
+miners_robots.commandpages={}
 --Page sets. This table's values should be modified by mods wishing to add pages to existing tiers.
-simple_robots.pagesets={}
+miners_robots.pagesets={}
 --Commands. These are indexed by their name in capitals.
 --This table should be modified by any mod wishing to add a command.
 --Command functions are given the position of the robot,and the argument.
 --They must return a value for the timer,or 0 if this only takes up CPU time,
 --or nil if it should avoid doing anything to the node timer.
 --Furthermore,the PC will NOT automatically advance.
---Use utility functions simple_robots.vm_advance and simple_robots.vm_lookup.
+--Use utility functions miners_robots.vm_advance and miners_robots.vm_lookup.
 --They must be passed the timer value you want,
 --and they will return either that,or nil(meaning the robot shutdown).
 --This should be used somewhat like: return vm_advance(pos,MOVETIME)
 --Movement commands should manually set the timer in the place they move to.
-simple_robots.commands={}
+miners_robots.commands={}
 
 --Custom metadata.
-simple_robots.custommetas={}
+miners_robots.custommetas={}
 
 --TODO:Make it so that command sets are indexed in a sane way.
 --     At the moment,as all functions have some way of
@@ -90,7 +90,7 @@ simple_robots.custommetas={}
 local CODELINES=64
 
 local license={
-"simple_robots:Copyright 2014 gamemanj",
+"miners_robots:Copyright 2014 gamemanj",
 "",
 "Licensed under the Apache License, Version 2.0 (the \"License\");",
 "you may not use this file except in compliance with the License.",
@@ -109,12 +109,12 @@ for k,v in ipairs(license) do
     licenseformspec=licenseformspec.." label[0,"..(k/2)..";"..minetest.formspec_escape(v).."]"
 end
 --Send the license to the player. This is for the sake of server owners.
-minetest.register_chatcommand("simple_robots_showlicense",
+minetest.register_chatcommand("miners_robots_showlicense",
 {
     params = "",
-    description="Show the license notice for simple_robots.",
+    description="Show the license notice for miners_robots.",
     func = function(name)
-        minetest.show_formspec(name, "simple_robots:license", licenseformspec)
+        minetest.show_formspec(name, "miners_robots:license", licenseformspec)
         return true, "Done."
     end,
 })
@@ -123,7 +123,7 @@ minetest.register_chatcommand("simple_robots_showlicense",
 --on_step is there in case a "leak" occurs(object not removed).
 --Seeing as leaks should not occur,and in fact should never occur unless something is broken,
 --a warning is printed in the server log.
-minetest.register_entity("simple_robots:fakeplayer",
+minetest.register_entity("miners_robots:fakeplayer",
 {
     initial_properties = {
         hp_max = 1,
@@ -142,7 +142,7 @@ minetest.register_entity("simple_robots:fakeplayer",
 --PROGRAMMER INTERFACE
 local function genProgrammer(pages,meta)
     --current page
-    local set=simple_robots.commandpages[meta:get_string("command_page")]
+    local set=miners_robots.commandpages[meta:get_string("command_page")]
     local komendy=meta:get_string("set")
     --messy calculation for size
     local wid=0
@@ -168,10 +168,10 @@ local function genProgrammer(pages,meta)
     --For some reason LN liked to equal 0.
     --Doesn't happen anymore,but may as well leave a perfectly good check.
    
-    res=res.."label[3,0.5;Polecenie:]"
+    res=res.."label[3,0.5;Command:]"
 
     if meta:get_string("command_page") == "scout" or meta:get_string("command_page") == "inventory" then
-        res=res.."label[8,0.5;Ile razy:]"
+        res=res.."label[7.5,0.5;How much:]"
         res=res.."field[8.5,1.3.1;1,1;value;;1]"
     end
 
@@ -195,11 +195,11 @@ local function genProgrammer(pages,meta)
     return res
 end
 
-function simple_robots.vm_get_wielded(pos)
+function miners_robots.vm_get_wielded(pos)
     local meta=minetest.get_meta(pos)
     return meta:get_inventory():get_stack("main",meta:get_int("robot_slot"))
 end
-function simple_robots.vm_set_wielded(pos,is)
+function miners_robots.vm_set_wielded(pos,is)
     local meta=minetest.get_meta(pos)
     return meta:get_inventory():set_stack("main",meta:get_int("robot_slot"),is)
 end
@@ -208,8 +208,8 @@ end
 --it just has to handle EXPECTED behaviors.
 --Causing weird errors when a buggy item(that is, a item that crashes minetest if a real player uses it) comes along is fine,
 --since that item should be tested by the author anyway(to state it another way:not my fault)
-function simple_robots.vm_fakeplayer(name,pos,fp_control,selectedslot)
-    local fake_player=minetest.add_entity(pos,"simple_robots:fakeplayer")
+function miners_robots.vm_fakeplayer(name,pos,fp_control,selectedslot)
+    local fake_player=minetest.add_entity(pos,"miners_robots:fakeplayer")
     local actual={}
     local actual_meta={}
     actual_meta.__index=function(tab,ind)
@@ -224,10 +224,10 @@ function simple_robots.vm_fakeplayer(name,pos,fp_control,selectedslot)
         return minetest.get_meta(pos):get_inventory()
     end
     actual.get_wielded_item=function (_)
-        return simple_robots.vm_get_wielded(pos)
+        return miners_robots.vm_get_wielded(pos)
     end
     actual.set_wielded_item=function (_,is)
-        return simple_robots.vm_set_wielded(pos,is)
+        return miners_robots.vm_set_wielded(pos,is)
     end
     actual.get_player_control=function (_)
         return fp_control
@@ -240,7 +240,7 @@ function simple_robots.vm_fakeplayer(name,pos,fp_control,selectedslot)
 end
 
 --Load/Save to/from meta
-function simple_robots.meta_to_program(meta)
+function miners_robots.meta_to_program(meta)
     local ser={}
     for x=1,CODELINES do
         ser[x]={}
@@ -250,7 +250,7 @@ function simple_robots.meta_to_program(meta)
     return ser
 end
 
-function simple_robots.meta_to_program2(meta)
+function miners_robots.meta_to_program2(meta)
     local ser={}
     for x=1,CODELINES do
         ser[x]={}
@@ -260,8 +260,8 @@ function simple_robots.meta_to_program2(meta)
     return ser
 end
 
-function simple_robots.program_to_meta2(meta,ser)
-local file = io.open(minetest.get_modpath("simple_robots").."/example_task_robot.txt", "r")
+function miners_robots.program_to_meta2(meta,ser)
+local file = io.open(minetest.get_modpath("miners_robots").."/example_task_robot.txt", "r")
 io.input(file)
 wpis = io.read()
 local lines = {}
@@ -278,23 +278,23 @@ local lines = {}
  file:close()
 end
 
-function simple_robots.program_to_meta(meta,ser)
+function miners_robots.program_to_meta(meta,ser)
     for x=1,CODELINES do
         meta:set_string("program_"..x.."_op",ser[x].op)
         meta:set_string("program_"..x.."_msg",ser[x].msg)
     end
 end
-function simple_robots.robot_to_table(pos)
+function miners_robots.robot_to_table(pos)
     local ser={}
     local meta=minetest.get_meta(pos)
     ser.pc=meta:get_int("robot_pc")
     ser.slot=meta:get_int("robot_slot")
     ser.owner=meta:get_string("robot_owner")
-    ser.prog=simple_robots.meta_to_program(meta)
+    ser.prog=miners_robots.meta_to_program(meta)
     ser.inv=meta:get_inventory():get_list("main")--All's fair in love,war,and minetest modding.
     ser.custommetas={}
 
-    for k,v in pairs(simple_robots.custommetas) do
+    for k,v in pairs(miners_robots.custommetas) do
         if type(v)=="string" then
             ser.custommetas[k]=meta:get_string(k)
         end
@@ -305,17 +305,17 @@ function simple_robots.robot_to_table(pos)
     return ser
 end
 
-function simple_robots.robot_to_table2(pos)
+function miners_robots.robot_to_table2(pos)
     local ser={}
     local meta=minetest.get_meta(pos)
     ser.pc=meta:get_int("robot_pc")
     ser.slot=meta:get_int("robot_slot")
     ser.owner=meta:get_string("robot_owner")
-    ser.prog=simple_robots.meta_to_program2(meta)
+    ser.prog=miners_robots.meta_to_program2(meta)
     ser.inv=meta:get_inventory():get_list("main")--All's fair in love,war,and minetest modding.
     ser.custommetas={}
 
-    for k,v in pairs(simple_robots.custommetas) do
+    for k,v in pairs(miners_robots.custommetas) do
         if type(v)=="string" then
             ser.custommetas[k]=meta:get_string(k)
         end
@@ -326,12 +326,12 @@ function simple_robots.robot_to_table2(pos)
     return ser
 end
 
-function simple_robots.table_to_robot(pos,ser)
+function miners_robots.table_to_robot(pos,ser)
     local meta=minetest.get_meta(pos)
     meta:set_int("robot_pc",ser.pc)
     meta:set_int("robot_slot",ser.slot)
     meta:set_string("robot_owner",ser.owner)
-    simple_robots.program_to_meta(meta,ser.prog)
+    miners_robots.program_to_meta(meta,ser.prog)
     ser.inv=meta:get_inventory():set_list("main",ser.inv)
 
     for k,v in pairs(ser.custommetas) do
@@ -344,12 +344,12 @@ function simple_robots.table_to_robot(pos,ser)
     end
 end
 
-function simple_robots.table_to_robot2(pos,ser)
+function miners_robots.table_to_robot2(pos,ser)
     local meta=minetest.get_meta(pos)
     meta:set_int("robot_pc",ser.pc)
     meta:set_int("robot_slot",ser.slot)
     meta:set_string("robot_owner",ser.owner)
-    simple_robots.program_to_meta2(meta,ser.prog)
+    miners_robots.program_to_meta2(meta,ser.prog)
     ser.inv=meta:get_inventory():set_list("main",ser.inv)
 
     for k,v in pairs(ser.custommetas) do
@@ -363,48 +363,48 @@ function simple_robots.table_to_robot2(pos,ser)
 end
 
 --Will shutdown the robot.
-function simple_robots.shutdownat(pos)
-    local ser=simple_robots.robot_to_table(pos)
+function miners_robots.shutdownat(pos)
+    local ser=miners_robots.robot_to_table(pos)
     local tp=minetest.get_node(pos).name
     minetest.set_node(pos,{name=tp.."_off",param2=minetest.get_node(pos).param2})
-    simple_robots.table_to_robot(pos,ser)
+    miners_robots.table_to_robot(pos,ser)
     local meta=minetest.get_meta(pos)
     --NOTE:When the node is created,command_page and such are reset.
-    --But the formspec wasn't updated after simple_robots.table_to_robot.Fix that.
-    meta:set_string("formspec",genProgrammer(simple_robots.pagesets[tp.."_off"],meta))
+    --But the formspec wasn't updated after miners_robots.table_to_robot.Fix that.
+    meta:set_string("formspec",genProgrammer(miners_robots.pagesets[tp.."_off"],meta))
 end
 
 --vm_is_air:Is a block air?
-function simple_robots.vm_is_air(nt)
+function miners_robots.vm_is_air(nt)
     return nt.name=="" or nt.name=="air"
 end
 
 --vm_can_add:Simple permissions check,and check in case of solid blocks.
-function simple_robots.vm_can_add(owner,pos)
+function miners_robots.vm_can_add(owner,pos)
     local nt=minetest.get_node(pos)
     if owner=="" then return false end
     local protected=minetest.is_protected(pos, owner)
-    return (not protected) and simple_robots.vm_is_air(nt)
+    return (not protected) and miners_robots.vm_is_air(nt)
 end
 
 --vm_can_remove:Simple permissions check,and check in case of air.
-function simple_robots.vm_can_remove(owner,pos)
+function miners_robots.vm_can_remove(owner,pos)
     local nt=minetest.get_node(pos)
     if owner=="" then return false end
     local protected=minetest.is_protected(pos, owner)
-    return (not protected) and (not simple_robots.vm_is_air(nt))
+    return (not protected) and (not miners_robots.vm_is_air(nt))
 end
 
-function simple_robots.vm_advance(pos,rtime)
+function miners_robots.vm_advance(pos,rtime)
     local meta=minetest.get_meta(pos)
     local pc=meta:get_int("robot_pc")
-    if pc==CODELINES then meta:set_int("robot_pc",0) simple_robots.shutdownat(pos) return nil end
+    if pc==CODELINES then meta:set_int("robot_pc",0) miners_robots.shutdownat(pos) return nil end
     meta:set_int("robot_pc",pc+1)
     return rtime
 end
 --This originally supported labels,but I removed them to simplify things.
 --There's only 64 lines.
-function simple_robots.vm_lookup(pos,label,rtime)
+function miners_robots.vm_lookup(pos,label,rtime)
     local x=tonumber(label)
     local meta=minetest.get_meta(pos)
     if x~=nil then
@@ -414,7 +414,7 @@ function simple_robots.vm_lookup(pos,label,rtime)
         end
     end
     meta:set_int("robot_pc",0)
-    simple_robots.shutdownat(pos)
+    miners_robots.shutdownat(pos)
     return nil
 end
 
@@ -423,24 +423,24 @@ end
 local function vm_run(pos)
     local meta=minetest.get_meta(pos)
     local pc=meta:get_int("robot_pc")
-    if pc==0 then simple_robots.shutdownat(pos) return nil end
+    if pc==0 then miners_robots.shutdownat(pos) return nil end
     local command=meta:get_string("program_"..pc.."_op")
     local arg=meta:get_string("program_"..pc.."_msg")
     --print("RAN "..command)
-    local cfunc=simple_robots.commands[command]
+    local cfunc=miners_robots.commands[command]
     if cfunc~=nil then
         return cfunc(pos,arg)
     end
     --Legacy commands
     --If this EVER happens,something is really wrong with the save file.
     print("Corrupted robot program @ "..(pos.x)..","..(pos.y)..","..(pos.z).." (not the fault of the robot's owner,this is save file corruption) missing command:"..tostring(command))
-    simple_robots.shutdownat(pos)
+    miners_robots.shutdownat(pos)
     return nil
 end
 
 --VM RESET FUNCTION
 --Used to avoid crashes should a "accident" happen.
-function simple_robots.resetmeta(meta)
+function miners_robots.resetmeta(meta)
     local inv=meta:get_inventory()
     inv:set_size("main", 16)
     meta:set_string("robot_owner", "")
@@ -452,7 +452,7 @@ function simple_robots.resetmeta(meta)
     meta:set_int("robot_pc", 1)
     meta:set_int("robot_slot", 1)
     --Custom metadata
-    for k,v in pairs(simple_robots.custommetas) do
+    for k,v in pairs(miners_robots.custommetas) do
         if type(v)=="string" then
             meta:set_string(k,v)
         end
@@ -464,11 +464,11 @@ end
 
 --ROBOT BLOCK
 --Confusingly enough,commandpages as a argument means "the set of pages as strings this robot can use".
---simple_robots.commandpages is a table containing said pages.
-function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex_off,pageset)
+--miners_robots.commandpages is a table containing said pages.
+function miners_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex_off,pageset)
     --This is on purpose,as the _off variant can't be directly into a normal variant.
     --(Hence the only mechanism for turning a robot on is here.)
-    simple_robots.pagesets[nodeid.."_off"]=pageset
+    miners_robots.pagesets[nodeid.."_off"]=pageset
     minetest.register_node(nodeid, {
         description = description.." (please don't place,won't set owner)",
         tiles = tex_on,
@@ -483,7 +483,7 @@ function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex
         groups = {dig_immediate=2,not_in_creative_inventory=1},
         sounds = default.node_sound_defaults(),
         on_construct = function(pos)
-            simple_robots.resetmeta(minetest.get_meta(pos))
+            miners_robots.resetmeta(minetest.get_meta(pos))
             local tmr = minetest.get_node_timer(pos)
             tmr:start(1)
         end,
@@ -511,7 +511,7 @@ function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex
             if (clicker:get_player_name()~=own) and own~="" then
                 return
             end
-            simple_robots.shutdownat(pos)
+            miners_robots.shutdownat(pos)
         end,
     })
     minetest.register_node(nodeid.."_off", {
@@ -527,10 +527,10 @@ function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex
         sounds = default.node_sound_defaults(),
         on_construct = function(pos)
             local meta = minetest.get_meta(pos)
-            simple_robots.resetmeta(meta)
+            miners_robots.resetmeta(meta)
             meta:set_int("lineno",1)
             meta:set_string("command_page","scout")
-            meta:set_string("formspec",genProgrammer(simple_robots.pagesets[nodeid.."_off"],meta))
+            meta:set_string("formspec",genProgrammer(miners_robots.pagesets[nodeid.."_off"],meta))
         end,
         after_place_node = function (pos,placer,itemstack,pointed_thing)
             minetest.get_meta(pos):set_string("robot_owner",placer:get_player_name())
@@ -552,11 +552,11 @@ function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex
                 end
             end
             if fields.reset or fields.resume then
-                local ser=simple_robots.robot_to_table(pos)
+                local ser=miners_robots.robot_to_table(pos)
                 if fields.reset then ser.pc=1 ser.slot=1 end
                 minetest.set_node(pos,{name=nodeid,param2=minetest.get_node(pos).param2})
                 --Timer is enabled by default (intentional!)
-                simple_robots.table_to_robot(pos,ser)
+                miners_robots.table_to_robot(pos,ser)
                 return --don't set formspec!!!
             end
 
@@ -571,20 +571,20 @@ function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex
             end
 
               if fields.file  then
-                 local ser=simple_robots.robot_to_table2(pos)
+                 local ser=miners_robots.robot_to_table2(pos)
                  if fields.zpliku then ser.pc=1 ser.slot=1 end
                  minetest.set_node(pos,{name=nodeid,param2=minetest.get_node(pos).param2})
                  --Timer is enabled by default (intentional!)
-                 simple_robots.table_to_robot2(pos,ser)
+                 miners_robots.table_to_robot2(pos,ser)
                  return --don't set formspec!!!
             end
 
-            for k,v in ipairs(simple_robots.pagesets[nodeid.."_off"]) do
+            for k,v in ipairs(miners_robots.pagesets[nodeid.."_off"]) do
                 if fields["cmdpage"..k] then
                     meta:set_string("command_page",v)
                 end
                 if meta:get_string("command_page")==v then
-                    for k2,v2 in ipairs(simple_robots.commandpages[v]) do
+                    for k2,v2 in ipairs(miners_robots.commandpages[v]) do
                         if fields["cmd"..k2] then
                             local ln=meta:get_int("lineno")
                             if (ln~=nil) and (ln~=0) then
@@ -596,7 +596,7 @@ function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex
                 end
             end
 
-            meta:set_string("formspec",genProgrammer(simple_robots.pagesets[nodeid.."_off"],meta))
+            meta:set_string("formspec",genProgrammer(miners_robots.pagesets[nodeid.."_off"],meta))
         end
     })
 end

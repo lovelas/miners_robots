@@ -27,7 +27,7 @@ local function vm_getfrontinv(meta,pos)
 	--(Course,I have yet to handle the case of locked chests,or really any inventory permissions stuff.)
 	local pos2=vector.add(pos,minetest.facedir_to_dir(minetest.get_node(pos).param2))
 	--Permissions check,and does a implict is_air test.(hence it exists)
-	if not simple_robots.vm_can_remove(meta:get_string("robot_owner"),pos2) then return nil end
+	if not miners_robots.vm_can_remove(meta:get_string("robot_owner"),pos2) then return nil end
 	local tgtmeta=minetest.get_meta(pos2)
 	if not tgtmeta then
 		return
@@ -40,14 +40,14 @@ end
 
 --"SELECT SLOT"
 
-simple_robots.commands["SELECT SLOT"]=function (pos,arg)
+miners_robots.commands["SELECT SLOT"]=function (pos,arg)
 	local meta=minetest.get_meta(pos)
 	local p=tonumber(arg)
-	if p==nil then simple_robots.shutdownat(pos) return nil end
-	if p<1 then simple_robots.shutdownat(pos) return nil end
-	if p>16 then simple_robots.shutdownat(pos) return nil end
+	if p==nil then miners_robots.shutdownat(pos) return nil end
+	if p<1 then miners_robots.shutdownat(pos) return nil end
+	if p>16 then miners_robots.shutdownat(pos) return nil end
 	meta:set_int("robot_slot",p)
-	return simple_robots.vm_advance(pos,0)
+	return miners_robots.vm_advance(pos,0)
 end
 
 
@@ -55,4 +55,4 @@ end
 
 --PAGE DEFINITION
 
-simple_robots.commandpages["inventory"]={["SELECT SLOT"]="1"}
+miners_robots.commandpages["inventory"]={["SELECT SLOT"]="1"}

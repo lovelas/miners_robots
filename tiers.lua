@@ -14,11 +14,11 @@
 --
 --tiers.lua: Robot types and recipes.
 
-simple_robots.register_robot_type(
+miners_robots.register_robot_type(
     --node name
-    "simple_robots:robot_simple",
+    "miners_robots:robot_simple",
     --description
-    "Simple Robot",
+    "Miners Robot",
     --nodebox when off
     {"miners_robots_robot_off_top.png",
         "miners_robots_robot_bottom.png",
