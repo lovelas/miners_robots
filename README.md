@@ -1,6 +1,7 @@
 #During the change ...
 
-![Settings Window](https://github.com/lovelas/miners_robots/master/Screenshots/screenshot_1.png)
+![Alt text](/Screenshots/screenshot_1.png?raw=true "Screenshots 1")
+
 
 simple_robots:Simple programmable robots
 
