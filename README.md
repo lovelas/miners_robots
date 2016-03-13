@@ -1,4 +1,4 @@
-#During the change ...
+#Miner Robots - robot for special tasks :)
 
 ![Alt text](/Screenshots/screenshot_1.png?raw=true "Screenshots 1")
 
