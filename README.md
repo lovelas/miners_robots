@@ -2,6 +2,7 @@
 
 ![Alt text](/Screenshots/screenshot_1.png?raw=true "Screenshots 1")
 
+![Alt text](/Screenshots/screenshot_2.png?raw=true "Screenshots 2")
 
 simple_robots:Simple programmable robots
 
