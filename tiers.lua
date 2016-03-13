@@ -16,7 +16,7 @@
 
 simple_robots.register_robot_type(
     --node name
-    "miners_robots:robot_simple",
+    "simple_robots:robot_simple",
     --description
     "Simple Robot",
     --nodebox when off
