@@ -18,9 +18,9 @@ Failing that,it's either not water,or you have to try again.
 #AUTHORS
 Expand this if you contribute!
 Authors are:
-> gamemanj on GitHub,for original mod.
-> HybridDog on GitHub,for adding place/dig sounds.
-> lovelas on GitHub, for this fork.
+- gamemanj on GitHub,for original mod.
+- HybridDog on GitHub,for adding place/dig sounds.
+- lovelas on GitHub, for this fork.
 
 
 #LICENSE
@@ -31,8 +31,8 @@ Texture and model of Robots by kilbith, modified by Nore and modified by lovelas
 License of code:
 
 This is a fork(author: lovelas on GitHub) of simple_robots, whose authors are:
-> gamemanj on GitHub,for original mod.
-> HybridDog on GitHub,for adding place/dig sounds.
+- gamemanj on GitHub,for original mod.
+- HybridDog on GitHub,for adding place/dig sounds.
 
 Copyright 2016 lovelas
 
