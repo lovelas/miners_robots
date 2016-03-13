@@ -1,5 +1,7 @@
 #During the change ...
 
+![Settings Window](https://github.com/lovelas/miners_robots/master/Screenshots/screenshot_1.png)
+
 simple_robots:Simple programmable robots
 
 #ABOUT
