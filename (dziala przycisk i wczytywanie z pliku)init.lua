@@ -143,12 +143,11 @@ minetest.register_entity("simple_robots:fakeplayer",
 local function genProgrammer(pages,meta)
     --current page
     local set=simple_robots.commandpages[meta:get_string("command_page")]
-    local komendy=meta:get_string("set")
     --messy calculation for size
-    local wid=0
-    local res="size[17,7]"
+    local wid=(8/1.25)+2
+    local res="size[17,"..wid.."]"
     local pc=meta:get_int("robot_pc")
-    res=res.."textlist[0,2;10.5,3;lines;"
+    res=res.."textlist[0,0;3,"..wid..";lines;"
     for l=1,CODELINES do
         if l~=1 then res=res.."," end
         if l==pc then
@@ -159,39 +158,33 @@ local function genProgrammer(pages,meta)
         res=res..meta:get_string("program_"..l.."_op").." "..minetest.formspec_escape(meta:get_string("program_"..l.."_msg"))
     end
     res=res.."]"
-    local pos=0
+    local pos=3.25
     --Note:Due to the bigger fields of 0.4.11,I've had to shuffle the layout a bit.
     for p,v in ipairs(pages) do
-        res=res.."button["..pos..","..(wid-0.5)..";2,1;cmdpage"..p..";"..v.."]"
-        pos=pos+2.2
+        res=res.."button["..pos..","..(wid-0.5)..";1.75,1;cmdpage"..p..";"..v.."]"
+        pos=pos+1.50
     end
     --For some reason LN liked to equal 0.
     --Doesn't happen anymore,but may as well leave a perfectly good check.
-   
-    res=res.."label[3,0.5;Polecenie:]"
-
-    if meta:get_string("command_page") == "scout" or meta:get_string("command_page") == "inventory" then
-        res=res.."label[8,0.5;Ile razy:]"
-        res=res.."field[8.5,1.3.1;1,1;value;;1]"
+    local ln=meta:get_int("lineno")
+    if (ln~=nil) and (ln~=0) then
+        res=res.."label[3.25,0;Line "..ln.."="..meta:get_string("program_"..ln.."_op").." "..minetest.formspec_escape(meta:get_string("program_"..ln.."_msg")).."]"
+        for p,v in ipairs(set) do
+            --This deliberately acts against the auto-spacing to conserve space
+            --for more commands.
+            res=res.."button[8.25,"..(p+0.2)..";1,1;cmd"..p..";Set]"
+            res=res.."field[3.25,"..(p+0.2)..";5,1;msg"..p..";"..v..";]"
+        end
     end
+    res=res.."label[9.25,-0.25;Player Inventory]"
+    res=res.."label[9.25,4.2;Robot Inventory]"
+    res=res.."list[current_player;main;9.25,0.25;8,4;]"
+    res=res.."list[context;main;9.25,4.7;8,2;]"
 
-    res=res.."button[9.5,0.9;1,1;confirm;OK]"
-
-    res=res.."dropdown [0,1;8,1;choice;"
-		for key, _ in pairs(set) do
-			res = res .. key .. ","
-		end
-		res = string.sub(res, 1, -2)
-		res = res .. ";1]"
-
-    res=res.."label[11,-0.25;Player Inventory]"
-    res=res.."label[11,4.2;Robot Inventory]"
-    res=res.."list[current_player;main;11,0.25;6,4;]"
-    res=res.."list[context;main;11,4.7;6,2;]"
     --Reset resets the robot,resume simply resumes it.
-    res=res.."button[0,6;3,1;reset;Reset(goto 1)]"
-    res=res.."button[3,6;2,1;resume;Resume]"
-    res=res.."button[6,6;2,1;file;From File]"
+    res=res.."button[9.25,"..(wid-1.75)..";1.75,1;reset;Reset(goto 1)]"
+    res=res.."button[10.75,"..(wid-1.75)..";1.25,1;resume;Resume]"
+    res=res.."button[11.75,"..(wid-1.75)..";1.25,1;zpliku;Z pliku]"
     return res
 end
 
@@ -261,7 +254,7 @@ function simple_robots.meta_to_program2(meta)
 end
 
 function simple_robots.program_to_meta2(meta,ser)
-local file = io.open(minetest.get_modpath("simple_robots").."/example_task_robot.txt", "r")
+local file = io.open("/home/daniel/comand_in.txt", "r")
 io.input(file)
 wpis = io.read()
 local lines = {}
@@ -560,23 +553,13 @@ function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex
                 return --don't set formspec!!!
             end
 
-              if fields.confirm  then
-           
-                            
-                            local ln=meta:get_int("lineno")
-                            if (ln~=nil) and (ln~=0) then
-                                meta:set_string("program_"..ln.."_op",fields.choice)
-                               meta:set_string("program_"..ln.."_msg",fields.value)
-                            end
-            end
-
-              if fields.file  then
-                 local ser=simple_robots.robot_to_table2(pos)
-                 if fields.zpliku then ser.pc=1 ser.slot=1 end
-                 minetest.set_node(pos,{name=nodeid,param2=minetest.get_node(pos).param2})
-                 --Timer is enabled by default (intentional!)
-                 simple_robots.table_to_robot2(pos,ser)
-                 return --don't set formspec!!!
+              if fields.zpliku  then
+                local ser=simple_robots.robot_to_table2(pos)
+                if fields.zpliku then ser.pc=1 ser.slot=1 end
+                minetest.set_node(pos,{name=nodeid,param2=minetest.get_node(pos).param2})
+                --Timer is enabled by default (intentional!)
+                simple_robots.table_to_robot2(pos,ser)
+                return --don't set formspec!!!
             end
 
             for k,v in ipairs(simple_robots.pagesets[nodeid.."_off"]) do
@@ -595,7 +578,6 @@ function simple_robots.register_robot_type(nodeid,description,nodebox,tex_on,tex
                     end
                 end
             end
-
             meta:set_string("formspec",genProgrammer(simple_robots.pagesets[nodeid.."_off"],meta))
         end
     })

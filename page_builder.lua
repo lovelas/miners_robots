@@ -18,7 +18,7 @@
 
 local PLACETIME=0.5 --Time taken to place.
 
---"PLACE ELSE GOTO" "PLACE UP ELSE GOTO" "PLACE DOWN ELSE GOTO"
+--"BUILD IN FRONT" "BUILD UP" "BUILD DOWN"
 
 -- gets the place sound of a node
 
@@ -48,6 +48,7 @@ local function vm_pointable(name)
     return nodedef.pointable
 end
 local function vm_place(pos1,dir,arg)
+   
     local meta=minetest.get_meta(pos1)
     local pos2=vector.add(pos1,dir)
     if not vm_buildable_to(minetest.get_node(pos2).name) then return simple_robots.vm_lookup(pos1,arg,0) end
@@ -59,6 +60,7 @@ local function vm_place(pos1,dir,arg)
     local stackdef=stk:get_definition()
     local pa_under=vector.add(pos2,dir)
     if not vm_pointable(minetest.get_node(pa_under).name) then pa_under=pos1 end
+    
     local res,tf=stackdef.on_place(stk,fp,{type="node",under=pa_under,above=pos2})
     fp:remove()
     meta:get_inventory():set_stack("main",meta:get_int("robot_slot"),res)
@@ -70,20 +72,25 @@ local function vm_place(pos1,dir,arg)
             minetest.sound_play(sound.name, {pos=pos2, gain=sound.gain})
         end
     end
-    return simple_robots.vm_advance(pos1,PLACETIME)
+   return simple_robots.vm_advance(pos1,PLACETIME) 
+    
+    
 end
 
-simple_robots.commands["PLACE ELSE GOTO"]=function (pos,arg)
+simple_robots.commands["BUILD IN FRONT"]=function (pos,arg)
     return vm_place(pos,minetest.facedir_to_dir(minetest.get_node(pos).param2),arg)
 end
-simple_robots.commands["PLACE UP ELSE GOTO"]=function (pos,arg)
+simple_robots.commands["BUILD UP"]=function (pos,arg)
     return vm_place(pos,{x=0,y=1,z=0},arg)
 end
-simple_robots.commands["PLACE DOWN ELSE GOTO"]=function (pos,arg)
+simple_robots.commands["BUILD DOWN"]=function (pos,arg)
+     
     return vm_place(pos,{x=0,y=-1,z=0},arg)
-end
+    
 
+
+end
 --PAGE DEFINITION
 
-simple_robots.commandpages["builder"]={"PLACE ELSE GOTO","PLACE UP ELSE GOTO","PLACE DOWN ELSE GOTO"}
+simple_robots.commandpages["builder"]={["BUILD IN FRONT"]="1",["BUILD UP"]="2",["BUILD DOWN"]="3"}
 

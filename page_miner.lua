@@ -19,7 +19,7 @@
 local MINEPENALTYTIME=0 --Extra time needed to mine a block(a robot penalty if you will)
 local PUNCHTIME=0.5 --Time taken to punch.
 
---"MINE ELSE GOTO" "MINE UP ELSE GOTO" "MINE DOWN ELSE GOTO"
+--"MINE IN FRONT" "MINE UP" "MINE DOWN"
 
 -- gets the dug sound of a node
 local function vm_get_node_dug_sound(name)
@@ -108,68 +108,18 @@ local function vm_mine(pos1, dir, arg)
 	return simple_robots.vm_advance(pos1, dp_result.time+MINEPENALTYTIME)
 end
 
-simple_robots.commands["MINE ELSE GOTO"] = function(pos,arg)
+simple_robots.commands["MINE IN FRONT"] = function(pos,arg)
 	return vm_mine(pos,minetest.facedir_to_dir(minetest.get_node(pos).param2),arg)
 end
-simple_robots.commands["MINE UP ELSE GOTO"] = function(pos,arg)
+simple_robots.commands["MINE UP"] = function(pos,arg)
 	return vm_mine(pos,{x=0,y=1,z=0},arg)
 end
-simple_robots.commands["MINE DOWN ELSE GOTO"] = function(pos,arg)
+simple_robots.commands["MINE DOWN"] = function(pos,arg)
 	return vm_mine(pos,{x=0,y=-1,z=0},arg)
 end
 
---"PUNCH ELSE GOTO" "PUNCH UP ELSE GOTO" "PUNCH DOWN ELSE GOTO"
-
-local function vm_pointable(nodename)
-	local nodedef = minetest.registered_nodes[nodename]
-	if not nodedef then
-		return
-	end
-	return nodedef.pointable
-end
-
---NOTE:This handles both the use of a tool and the punch itself.
-local function vm_punch(pos1, dir, arg)
-	local meta = minetest.get_meta(pos1)
-	local fp = simple_robots.vm_fakeplayer(meta:get_string("robot_owner"), pos1, {sneak=false}, meta:get_int("robot_slot"))
-	if not fp then
-		return simple_robots.vm_lookup(pos1, arg, 0)
-	end
-	local pos2 = vector.add(pos1,dir)
-	local node = minetest.get_node(pos2)
-	local success = false
-	local pointedthing = {type="nothing"}
-	if vm_pointable(node.name) then
-		pointedthing = {type="node", above=pos1, under=pos2}
-		minetest.registered_nodes[node.name].on_punch(pos2, node, fp,pointedthing)
-		success=true
-	end
-	local stk = meta:get_inventory():get_stack("main",meta:get_int("robot_slot"))
-	if stk:get_definition().on_use then
-		local is = stk:get_definition().on_use(stk, fp,pointedthing)
-		if is ~= nil then
-			meta:get_inventory():set_stack("main",meta:get_int("robot_slot"), is)
-		end
-		success = true
-	end
-	fp:remove()
-	if not success then
-		return simple_robots.vm_lookup(pos1, arg, 0)
-	end
-	return simple_robots.vm_advance(pos1,PUNCHTIME)
-end
-
-simple_robots.commands["PUNCH ELSE GOTO"] = function(pos,arg)
-	return vm_punch(pos,minetest.facedir_to_dir(minetest.get_node(pos).param2),arg)
-end
-simple_robots.commands["PUNCH UP ELSE GOTO"] = function(pos,arg)
-	return vm_punch(pos,{x=0,y=1,z=0},arg)
-end
-simple_robots.commands["PUNCH DOWN ELSE GOTO"] = function(pos,arg)
-	return vm_punch(pos,{x=0,y=-1,z=0},arg)
-end
 
 --PAGE DEFINITION
 
-simple_robots.commandpages.miner = {"MINE ELSE GOTO","MINE UP ELSE GOTO","MINE DOWN ELSE GOTO","PUNCH ELSE GOTO","PUNCH UP ELSE GOTO","PUNCH DOWN ELSE GOTO"}
+simple_robots.commandpages.miner = {["MINE IN FRONT"]="1",["MINE UP"]="2",["MINE DOWN"]="3"}
 

@@ -23,11 +23,6 @@ simple_robots.commands["NOP"] = function(pos,arg)
 	return simple_robots.vm_advance(pos,0)
 end
 
---GOTO
-
-simple_robots.commands["GOTO"] = function(pos,arg)
-	return simple_robots.vm_lookup(pos,arg,0)
-end
 
 --"TURN LEFT" "TURN RIGHT"
 
@@ -41,21 +36,24 @@ local function vm_turn(pos, dir)
 end
 
 simple_robots.commands["TURN LEFT"] = function(pos,arg)
-	return vm_turn(pos,-1)
+	return vm_turn(pos,-arg)
 end
 
 simple_robots.commands["TURN RIGHT"] = function(pos,arg)
-	return vm_turn(pos,1)
+	return vm_turn(pos,arg)
 end
 
---"FORWARD ELSE GOTO" "UPWARD ELSE GOTO" "DOWNWARD ELSE GOTO"
+--"GO FORWARD" "GO UP" "GO DOWN"
 
 local function vm_tp(pos1, dir, arg)
+   
 	local pos2 = vector.add(pos1, dir)
 	local ser = simple_robots.robot_to_table(pos1)
 	if not simple_robots.vm_can_add(ser.owner, pos2) then
+               
 		return simple_robots.vm_lookup(pos1, arg, 0)
-	end
+	        
+        end
 	minetest.set_node(pos2, minetest.get_node(pos1))
 	minetest.remove_node(pos1)
 
@@ -67,22 +65,40 @@ local function vm_tp(pos1, dir, arg)
 	if not timerval then
 		return --If vm_advance caused a shutdown,then don't setup the timer.
 	end
+ 
 	minetest.get_node_timer(pos2):start(timerval)--Manually control the timer,since get_node_timer won't work.
 	--The cycle loop is still looking at the old position,
 	--so tell it not to mess with the air's node timer(not that it should have one)
 end
 
-simple_robots.commands["FORWARD ELSE GOTO"] = function(pos,arg)
-	return vm_tp(pos,minetest.facedir_to_dir(minetest.get_node(pos).param2),arg)
+simple_robots.commands["GO FORWARD"] = function(pos,arg)
+	
+        if minetest.get_node(pos).param2 == 1 then
+		return vm_tp(pos,{x=arg,y=0,z=0},arg)
+      
+       elseif minetest.get_node(pos).param2 == 2 then
+		return vm_tp(pos,{x=0,y=0,z=-arg},arg)
+ 
+       elseif minetest.get_node(pos).param2 == 3 then
+		return vm_tp(pos,{x=-arg,y=0,z=0},arg)
+
+       elseif minetest.get_node(pos).param2 == 0 then
+		return vm_tp(pos,{x=0,y=0,z=arg},arg)
+
+	else
+                return vm_tp(pos,minetest.facedir_to_dir(minetest.get_node(pos).param2),arg)
+        end
 end
-simple_robots.commands["UPWARD ELSE GOTO"] = function(pos,arg)
-	return vm_tp(pos,{x=0,y=1,z=0},arg)
+simple_robots.commands["GO UP"] =  function(pos,arg)
+	return vm_tp(pos,{x=0,y=arg,z=0},arg)
+               
+                      
 end
-simple_robots.commands["DOWNWARD ELSE GOTO"] = function(pos,arg)
-	return vm_tp(pos,{x=0,y=-1,z=0},arg)
+simple_robots.commands["GO DOWN"] = function(pos,arg)
+	return vm_tp(pos,{x=0,y=-arg,z=0},arg)
 end
 
 --PAGE DEFINITION
 
-simple_robots.commandpages.scout = {"NOP","GOTO","FORWARD ELSE GOTO","TURN LEFT","TURN RIGHT","UPWARD ELSE GOTO","DOWNWARD ELSE GOTO"}
+simple_robots.commandpages.scout = {["NOP"]="1", ["GO FORWARD"]="2", ["TURN LEFT"]="3", ["TURN RIGHT"]="4", ["GO UP"]="5", ["GO DOWN"]="6"}
 
