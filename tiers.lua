@@ -16,37 +16,37 @@
 
 simple_robots.register_robot_type(
     --node name
-    "simple_robots:robot_simple",
+    "miners_robots:robot_simple",
     --description
     "Simple Robot",
     --nodebox when off
-    {"simple_robots_robot_off_top.png",
-        "simple_robots_robot_bottom.png",
-        "simple_robots_robot_side.png",
-        "simple_robots_robot_side.png",
-        "simple_robots_robot_back.png",
-        "simple_robots_off_front.png"
+    {"miners_robots_robot_off_top.png",
+        "miners_robots_robot_bottom.png",
+        "miners_robots_robot_side.png",
+        "miners_robots_robot_side.png",
+        "miners_robots_robot_back.png",
+        "miners_robots_off_front.png"
    },
     --tex_on
-    {"simple_robots_robot_on_top.png",
-        "simple_robots_robot_on_bottom.png",
-        "simple_robots_robot_on_side.png",
-        "simple_robots_robot_on_side.png",
-        "simple_robots_robot_on_back.png",
-        "simple_robots_simple_front.png"
+    {"miners_robots_robot_on_top.png",
+        "miners_robots_robot_on_bottom.png",
+        "miners_robots_robot_on_side.png",
+        "miners_robots_robot_on_side.png",
+        "miners_robots_robot_on_back.png",
+        "miners_robots_simple_front.png"
     },
     --tex_off
-    {"simple_robots_robot_off_top.png",
-        "simple_robots_robot_bottom.png",
-        "simple_robots_robot_side.png",
-        "simple_robots_robot_side.png",
-        "simple_robots_robot_back.png",
-        "simple_robots_off_front.png"},
+    {"miners_robots_robot_off_top.png",
+        "miners_robots_robot_bottom.png",
+        "miners_robots_robot_side.png",
+        "miners_robots_robot_side.png",
+        "miners_robots_robot_back.png",
+        "miners_robots_off_front.png"},
     {"scout","miner","builder","inventory"}
 )
 
 minetest.register_craft({
-	output = 'simple_robots:robot_simple_off',
+	output = 'miners_robots:robot_simple_off',
 	recipe = {
 		{'default:steel_ingot', 'default:steel_ingot', 'default:steel_ingot'},
 		{'default:glass', 'default:mese_crystal', 'group:stick'},
