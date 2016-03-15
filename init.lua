@@ -90,7 +90,7 @@ miners_robots.custommetas={}
 local CODELINES=64
 
 local license={
-"miners_robots:Copyright 2014 gamemanj",
+"miners_robots:Copyright 2016 lovelas",
 "",
 "Licensed under the Apache License, Version 2.0 (the \"License\");",
 "you may not use this file except in compliance with the License.",
